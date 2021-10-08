@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Firebase Server Auth</title>
+    <link rel="stylesheet" href="./mvp.css" />
+    <!-- CSS only -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+
+    <!-- Fontsawesome icons -->
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous" />
+
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-auth.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js" defer></script>
+</head>
+
+<body>
+    <main>
+        <section>
+            <div class="card">
+                <img src="https://icons.veryicon.com/png/o/application/cloud-supervision-platform-vr10/admin-5.png" class="card-img-top" alt="..." style="display: block; margin-left: auto; margin-right: auto; width: 20%; height: 150px;">
+                <div class="card-body">
+                    <h5 class="card-title" style="text-align: center;">Login</h5>
+                    <p class="card-text">
+                        <form id="login">
+                            <div class="mb-3">
+                                <label for="exampleInputEmail1" class="form-label">Email address</label>
+                                <input type="email" name="login" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
+                            </div>
+                            <div class="mb-3">
+                                <label for="exampleInputPassword1" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="exampleInputPassword1" name="password">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Login</button>
+                        </form>
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        window.addEventListener("DOMContentLoaded", () => {
+            var firebaseConfig = {
+                apiKey: "AIzaSyDCU41xicJBNTqrHQEjZ1b1c3SGNSikbpA",
+                authDomain: "chatbot-4b070.firebaseapp.com",
+                projectId: "chatbot-4b070",
+                storageBucket: "chatbot-4b070.appspot.com",
+                messagingSenderId: "459249214115",
+                appId: "1:459249214115:web:137c4dabfb2dcd8d7d9516",
+                measurementId: "G-FR157049VW"
+            }; // Initialize Firebase
+
+            firebase.initializeApp(firebaseConfig);
+
+            firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE)
+
+
+            document
+                .getElementById("login")
+                .addEventListener("submit", (event) => {
+                    event.preventDefault();
+                    const login = event.target.login.value;
+                    const password = event.target.password.value;
+
+                    firebase
+                        .auth()
+                        .signInWithEmailAndPassword(login, password)
+                        .then(({
+                            user
+                        }) => {
+                            return user.getIdToken().then((idToken) => {
+                                return fetch("/sessionLogin", {
+                                    method: "POST",
+                                    headers: {
+                                        Accept: "application/json",
+                                        "Content-Type": "application/json",
+                                        "CSRF-Token": Cookies.get("XSRF-TOKEN"),
+                                    },
+                                    body: JSON.stringify({
+                                        idToken
+                                    }),
+                                });
+                            });
+                        })
+                        .then(() => {
+                            return firebase.auth().signOut();
+                        })
+                        .then(() => {
+                            window.location.assign("/profile");
+                        });
+                    return false;
+                });
+
+
+        });
+    </script>
+    </main>
+</body>
+
+</html>
